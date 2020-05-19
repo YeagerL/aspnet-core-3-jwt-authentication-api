@@ -13,7 +13,7 @@ namespace WebApi.Services
 {
     public interface IUserService
     {
-        User Authenticate(string username, string password);
+        User Authenticate(string username, string password, string requesttoken);
         IEnumerable<User> GetAll();
     }
 
@@ -22,7 +22,7 @@ namespace WebApi.Services
         // users hardcoded for simplicity, store in a db with hashed passwords in production applications
         private List<User> _users = new List<User>
         { 
-            new User { Id = 1, FirstName = "Test", LastName = "User", Username = "test", Password = "test" } 
+            new User { Id = 1, FirstName = "Test", LastName = "User", Username = "test", Password = "test", Token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c" } 
         };
 
         private readonly AppSettings _appSettings;
@@ -32,7 +32,11 @@ namespace WebApi.Services
             _appSettings = appSettings.Value;
         }
 
-        public User Authenticate(string username, string password)
+        // LLY 05.19.2020 - in this case, this endpoint is authenticating a user and then generating a token
+        //  the generated token is then saved to user.Token
+        //  * To get the token used in the request to this endpoint, we will need to differentiate between the
+        //      request token and the token generated in this .NET Core api endpoint "Authenticate"
+        public User Authenticate(string username, string password, string requesttoken)
         {
             var user = _users.SingleOrDefault(x => x.Username == username && x.Password == password);
 
@@ -54,6 +58,9 @@ namespace WebApi.Services
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             user.Token = tokenHandler.WriteToken(token);
+            
+            // store the token sent with the request which may be storing user data (different than token created and stored above)
+            user.RequestToken = requesttoken;
 
             return user;
         }
@@ -62,5 +69,11 @@ namespace WebApi.Services
         {
             return _users;
         }
+
+        //public User GetUserToken(string username)
+        //{
+        //    var user = _users.SingleOrDefault(x => x.Username == username);
+        //    return user;
+        //}
     }
 }

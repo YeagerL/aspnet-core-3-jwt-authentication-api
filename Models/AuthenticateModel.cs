@@ -9,5 +9,7 @@ namespace WebApi.Models
 
         [Required]
         public string Password { get; set; }
+
+        public string RequestToken { get; set; }
     }
 }

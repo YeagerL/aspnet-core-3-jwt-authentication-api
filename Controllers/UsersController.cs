@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using WebApi.Services;
 using WebApi.Models;
 using System.Linq;
+using WebApi.Entities;
 
 namespace WebApi.Controllers
 {
@@ -22,7 +23,7 @@ namespace WebApi.Controllers
         [HttpPost("authenticate")]
         public IActionResult Authenticate([FromBody]AuthenticateModel model)
         {
-            var user = _userService.Authenticate(model.Username, model.Password);
+            var user = _userService.Authenticate(model.Username, model.Password, model.RequestToken);
 
             if (user == null)
                 return BadRequest(new { message = "Username or password is incorrect" });
@@ -35,6 +36,15 @@ namespace WebApi.Controllers
         {
             var users = _userService.GetAll();
             return Ok(users);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("getusertoken")]
+        public IActionResult GetUserToken([FromBody]AuthenticateModel model)
+        {
+            var token = model.RequestToken;
+
+            return Ok(token);
         }
     }
 }
